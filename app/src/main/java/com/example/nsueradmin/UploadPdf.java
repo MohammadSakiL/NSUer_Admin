@@ -1,9 +1,11 @@
 package com.example.nsueradmin;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
@@ -14,9 +16,19 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 import com.shashank.sony.fancytoastlib.FancyToast;
 
 import java.io.File;
+import java.util.HashMap;
 
 public class UploadPdf extends AppCompatActivity {
     private CardView selectPdf;
@@ -25,13 +37,24 @@ public class UploadPdf extends AppCompatActivity {
 
     private int REQ = 1;
     private Uri pdfData;
-    private String pdfName;
+    private String pdfName,title;
+
+    private DatabaseReference databaseReference;
+    private StorageReference storageReference;
+
+    private ProgressDialog pd;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_upload_pdf);
+
+        databaseReference = FirebaseDatabase.getInstance().getReference();
+        storageReference = FirebaseStorage.getInstance().getReference();
+
+        pd = new ProgressDialog(this);
+
 
         selectPdf = findViewById(R.id.selectPdf);
         pdfTitle = findViewById(R.id.pdfTitle);
@@ -44,6 +67,75 @@ public class UploadPdf extends AppCompatActivity {
                 openGallery();
             }
         });
+
+        uploadPdfButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                title = pdfTitle.getText().toString();
+                if(title.isEmpty()){
+                    pdfTitle.setError("empty title");
+                    pdfTitle.requestFocus();
+                }else if(pdfData == null){
+                    FancyToast.makeText(UploadPdf.this,"please upload pdf",FancyToast.LENGTH_SHORT,FancyToast.INFO,true).show();
+                }
+                else {
+                    uploadPdf();
+                }
+
+            }
+        });
+    }
+
+    private void uploadPdf() {
+        pd.setTitle("Please wait..");
+        pd.setMessage("Uploading pdf");
+        pd.show();
+        //Upload pdf to Firebase Storage
+
+        StorageReference reference = storageReference.child("pdf/" + pdfName +"-"+System.currentTimeMillis()+".pdf");
+        reference.putFile(pdfData).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+            @Override
+            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                //To download pdf file, getting URI
+                Task<Uri> uriTask = taskSnapshot.getStorage().getDownloadUrl();
+                while (!uriTask.isComplete());
+                Uri uri = uriTask.getResult();
+                uploadData(String.valueOf(uri));
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                pd.dismiss();
+                FancyToast.makeText(UploadPdf.this,"Something went wrong",FancyToast.LENGTH_SHORT,FancyToast.ERROR,true).show();
+
+            }
+        });
+    }
+
+    private void uploadData(String downloadUrl) {
+        String uniqueKey = databaseReference.child("pdf").push().getKey();
+
+        HashMap data = new HashMap();
+        data.put("PdfTitle",title);
+        data.put("pdfURL",downloadUrl);
+
+        databaseReference.child("pdf").child(uniqueKey).setValue(data).addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                pd.dismiss();
+
+                FancyToast.makeText(UploadPdf.this,"Successfully Upload",FancyToast.LENGTH_SHORT,FancyToast.SUCCESS,true).show();
+                pdfTextView.setText("");
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                pd.dismiss();
+                FancyToast.makeText(UploadPdf.this,"Something went wrong",FancyToast.LENGTH_SHORT,FancyToast.ERROR,true).show();
+
+            }
+        });
+
     }
 
     private void openGallery() {
