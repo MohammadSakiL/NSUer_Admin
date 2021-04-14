@@ -7,8 +7,10 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 
+import com.example.nsueradmin.Faculty.UpdateFaculty;
+
 public class MainActivity extends AppCompatActivity{
-    private CardView uploadNotice,addGalleryImage,addEbook;
+    private CardView uploadNotice,addGalleryImage,addEbook,updateFaculty;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -17,6 +19,7 @@ public class MainActivity extends AppCompatActivity{
         uploadNotice = findViewById(R.id.addNotice);
         addGalleryImage = findViewById(R.id.addGalleryImage);
         addEbook = findViewById(R.id.addEbook);
+        updateFaculty = findViewById(R.id.addFaculty);
 
 
         uploadNotice.setOnClickListener(new View.OnClickListener() {
@@ -40,6 +43,13 @@ public class MainActivity extends AppCompatActivity{
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(MainActivity.this,UploadPdf.class);
+                startActivity(intent);
+            }
+        });
+        updateFaculty.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, UpdateFaculty.class);
                 startActivity(intent);
             }
         });
