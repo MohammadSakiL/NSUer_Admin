@@ -40,4 +40,10 @@ dependencies {
     implementation 'com.google.firebase:firebase-storage:19.2.2'
     implementation 'com.github.Shashank02051997:FancyToast-Android:0.1.8'
 
+    //Circle Image View
+    implementation 'de.hdodenhof:circleimageview:3.1.0'
+
+    //Piccasso
+    implementation 'com.squareup.picasso:picasso:2.71828'
+
 }

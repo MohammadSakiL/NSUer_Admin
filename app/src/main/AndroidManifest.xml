@@ -12,7 +12,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".Faculty.AddFaculty"></activity>
+        <activity android:name=".Faculty.UpdateTeacher"></activity>
+        <activity android:name=".Faculty.Addteacher" />
         <activity android:name=".Faculty.UpdateFaculty" />
         <activity android:name=".UploadPdf" />
         <activity android:name=".UploadImage" />
